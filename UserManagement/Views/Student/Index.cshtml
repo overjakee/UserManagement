@@ -1,0 +1,669 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+<head>
+    <style>
+        table, td {
+            border: 1px solid gray;
+        }
+
+        input {
+            border-radius: 5px;
+            border: 0.5px solid gray;
+        }
+
+        .pagination a {
+            color: black;
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+
+        .headerTabelStyle {
+            color: white;
+            padding: 10px 0px 10px 5px;
+            background-color: #5E738B;
+            border-left: 1px solid white;
+        }
+
+        .magenagementContrainer {
+            display: flex;
+            flex-direction: row;
+            margin-bottom: 10px;
+        }
+
+        .magenagementContrainer label{
+            width: 20%
+        }
+
+        .magenagementContrainer input {
+            width : 80%;
+                height: 40px;
+        }
+
+        .magenagementContrainer select {
+            width: 80%;
+        }
+
+        .magenagementDate {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .magenagementDate div{
+            width: 50%;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .magenagementDate div label{
+            width : 40%;
+        }
+
+        .magenagementDate div input{
+            height : 35px;
+            width : 180px;
+        }
+
+        .poupIsDelete {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            width: 800px;
+            height: 170px;
+            border-radius: 3px;
+            border: 2px solid #F7B84B;
+            background-color: white;
+            padding: 10px;
+        }
+
+        .solutionPassword {
+            background-color: #FEF4E4;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            border-radius: 5px
+        }
+
+        .solutionPassword label{
+                color: #C4965B
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script type="text/javascript">
+
+        let index = 0;
+
+        let rowsPerPage = 5;
+        let currentPage = 1;
+
+        let userNameSearch = "";
+        let emailSearch = "";
+        let nameSearch = "";
+        let surnameSearch = "";
+
+        let listUser = [];
+
+        $(document).ready(function () {
+            getUserGroup();
+            searchUser();
+        });
+
+        function getUserGroup(){
+            $.post('@Url.Action("GetGroupUser", "Student")', {
+            },
+                function (responseData) {
+
+                    if (responseData.isSuccess) {
+                        createUserGroup(responseData.listUserGroup);
+                        return;
+                    } else {
+                        confirm(responseData.errorMessage);
+                        return;
+                    }
+                }
+            )
+        }
+
+        function createUserGroup(listUserGroup){
+            var myHTML = '';
+
+            for (var i = 0; i < listUserGroup.length;i++){
+                myHTML += '<option value="' + listUserGroup[i].id + '">' + listUserGroup[i].name_TH + '</option>'
+            }
+
+            $("#UserGroupForm").html('');
+            $("#UserGroupForm").append(myHTML).val;
+        }
+
+        
+        function aleartPopup(aleartStatus , functionAleart){
+            functionAleart()
+            // จัดการ popup
+            var imageAleart = null;
+            if (aleartStatus == 1){
+
+            }
+        }
+
+        function searchUser() {
+
+            let currentPage = 1;
+
+            $.post('@Url.Action("LoadUser", "Student")', {
+                userNameSearch: document.getElementById('NameUser').value,
+                emailSearch: document.getElementById('Email').value,
+                nameSearch: document.getElementById('NameEmployee').value,
+                surnameSearch: document.getElementById('SurNameEmployee').value
+            }, 
+            function (responseData) {
+
+                if (responseData.isSuccess) {
+                    listUser = responseData.data
+                    displayTable(currentPage);
+                    return;
+                } else {
+                    confirm(responseData.errorMessage)
+                    listUser = [];
+                        displayTable(currentPage);
+                    return;
+                }
+            }
+            )
+        }
+        function clearSearchOption() {
+            document.getElementById('NameUser').value = "";
+            document.getElementById('Email').value = "";
+            document.getElementById('NameEmployee').value = "";
+            document.getElementById('SurNameEmployee').value = ""
+        }
+
+        function clearPopup(){
+            document.getElementById("NameUserForm").value = "";
+            document.getElementById("EmailForm").value = "";
+            document.getElementById("EmployeeNameTHForm").value = "";
+            document.getElementById("EmployeeNameENForm").value = "";
+            document.getElementById("UserGroupForm").selectedIndex = 0;
+            document.getElementById("DateFromForm").value = null;
+            document.getElementById("DateToForm").value = null;
+        }
+
+        function closePopup() {
+            this.clearPopup();
+            $("#PopupUserManagement").hide();
+            $("#BackGroundPopupUserManagement").hide();
+            $("#passwordDetail").hide();
+            $('#NameUserForm').css("border-color", "gray");
+            $('#EmailForm').css("border-color", "gray");
+            $('#EmployeeNameTHForm').css("border-color", "gray");
+            $('#EmployeeNameENForm').css("border-color", "gray");
+            $('#PasswordForm').css("border-color", "gray");
+            $('#UserGroupForm').css("border-color", "gray");
+            $('#DateFromForm').css("border-color", "gray");
+            $('#DateToForm').css("border-color", "gray");
+            index = 0;
+        }
+
+        function openPopup(isAdd ,id){
+            if (isAdd) {
+                $("#buttonAddUser").show();
+                $("#buttonEditUser").hide();
+                $("#PopupUserManagement").show();
+                document.getElementById("PopupUserManagement").style.height = "660px";
+
+                $("#popupTile").html('');
+                $("#popupTile").append('<label>เพิ่มข้อมูล - ผู้ใช้งาน</label>').val;
+
+                $("#BackGroundPopupUserManagement").show();
+                $("#passwordDetail").show();
+
+            }else{
+                index = id;
+                let userSelect = listUser.filter(x => x.id == index);
+
+                if(userSelect.length == 0){
+                    alert("ไม่พบข้อมูลที่ต้องการจะแก้ไข");
+                    return;
+                }
+                let userData = userSelect[0];
+
+                document.getElementById("NameUserForm").value = userData.userName;
+                document.getElementById("EmailForm").value = userData.email;
+                document.getElementById("EmployeeNameTHForm").value = userData.name_TH + ' ' + userData.surname_TH;
+                document.getElementById("EmployeeNameENForm").value = userData.name_EN + ' ' + userData.surname_EN;
+                document.getElementById("UserGroupForm").value = userData.groupId;
+                document.getElementById("DateFromForm").value = userData.effectiveStartDate;
+                document.getElementById("DateToForm").value = userData.effectiveFinishDate;
+
+                $("#popupTile").html('');
+                $("#popupTile").append('<label>แก้ไขข้อมูล - ผู้ใช้งาน</label>').val;
+
+                $("#titlepopup").hide();
+                $("#titlepopup").show();
+
+                $("#PopupUserManagement").show();
+                document.getElementById("PopupUserManagement").style.height = "430px";
+                $("#BackGroundPopupUserManagement").show();
+            }
+        }
+
+        function addUser(){
+            $('#NameUserForm').css("border-color", "gray");
+            $('#EmailForm').css("border-color", "gray");
+            $('#EmployeeNameTHForm').css("border-color", "gray");
+            $('#EmployeeNameENForm').css("border-color", "gray");
+            $('#PasswordForm').css("border-color", "gray");
+            $('#UserGroupForm').css("border-color", "gray");
+            $('#DateFromForm').css("border-color", "gray");
+            $('#DateToForm').css("border-color", "gray");
+
+            $.post('@Url.Action("AddUser","Student")',{
+                UserName: document.getElementById('NameUserForm').value,
+                Email: document.getElementById('EmailForm').value,
+                Name_TH: document.getElementById('EmployeeNameTHForm').value,
+                Name_EN: document.getElementById('EmployeeNameENForm').value,
+                Password: document.getElementById('PasswordForm').value,
+                GroupId: document.getElementById('UserGroupForm').value,
+                EffectiveStartDate: document.getElementById('DateFromForm').value,
+                EffectiveFinishDate: document.getElementById('DateToForm').value
+            },
+                function (data) {
+                    responseData = data;
+                    if (responseData.isSuccess) {
+                        alert("ทำการเพิ่มรายการเรียบร้อย");
+                        closePopup();
+                        searchUser();
+                        return;
+                    } else {
+                        alert(responseData.errorMessage);
+                        $('#' + responseData.inputName + '').css("border-color", "red");
+                        return;
+                    }
+                })
+        }
+
+        function updateUser(){
+            $.post('@Url.Action("UpdateUser", "Student")', {
+                id: index,
+                UserName: document.getElementById('NameUserForm').value,
+                UserNameOrginal: listUser.find(x => x.id == index).userName,
+                Email: document.getElementById('EmailForm').value,
+                Name_TH: document.getElementById('EmployeeNameTHForm').value,
+                Name_EN: document.getElementById('EmployeeNameENForm').value,
+                Password: document.getElementById('PasswordForm').value,
+                GroupId: document.getElementById('UserGroupForm').value,
+                EffectiveStartDate: document.getElementById('DateFromForm').value,
+                EffectiveFinishDate: document.getElementById('DateToForm').value
+            },
+                function (data) {
+                    responseData = data;
+                    if (responseData.isSuccess) {
+                        alert("ทำการอัพเดตรายการเรียบร้อย");
+                        closePopup();
+                        searchUser();
+                        return;
+                    } else {
+                        alert(responseData.errorMessage);
+                        $("#NameUserForm").reportValidity()
+                        return;
+                    }
+                })
+        }
+
+        function delectUser(){
+            $.post('@Url.Action("DeleteUser", "Student")', {
+                id: index
+            },
+                function (data) {
+                    responseData = data;
+                    if (responseData.isSuccess) {
+                        alert("ทำการลบรายการเรียบร้อย");
+                        $("#BackGroundPopupUserManagement").hide();
+                        $('#popupIsDelete').hide();
+                        searchUser();
+                        return;
+                    } else {
+                        alert("ทำการลบรายการไม่สำเร็จ");
+                        return;
+                    }
+                })
+        }
+
+        function passwordToggle(){
+            var x = document.getElementById("PasswordForm");
+            if (x.type === "password") {
+                x.type = "text";
+                document.getElementById("eyeButton").className = "fa fa-eye-slash";
+            } else {
+                x.type = "password";
+                document.getElementById("eyeButton").className = "fa fa-eye";
+            }
+        }
+
+        function setRowPerPage(rowPerPageSelect) {
+            document.getElementById('rowPerPage5').style.backgroundColor = "white";
+            document.getElementById('rowPerPage10').style.backgroundColor = "white";
+            document.getElementById('rowPerPage15').style.backgroundColor = "white";
+            document.getElementById('rowPerPage20').style.backgroundColor = "white";
+            document.getElementById('rowPerPage30').style.backgroundColor = "white";
+            document.getElementById('rowPerPage50').style.backgroundColor = "white";
+            document.getElementById('rowPerPage100').style.backgroundColor = "white";
+            document.getElementById('rowPerPage150').style.backgroundColor = "white";
+            document.getElementById('rowPerPage200').style.backgroundColor = "white";
+
+            document.getElementById('rowPerPage' + rowPerPageSelect).style.backgroundColor = "gray";
+
+            rowsPerPage = rowPerPageSelect;
+
+            const pageCount = Math.ceil(listUser.length / rowsPerPage);
+            if (pageCount < currentPage){
+                currentPage = pageCount;
+            }
+            displayTable(currentPage);
+        }
+
+        function nextPage(){
+
+            const pageCount = Math.ceil(listUser.length / rowsPerPage);
+
+            currentPage += 1;
+            if (currentPage > pageCount){
+                currentPage = pageCount;
+            }
+            displayTable(currentPage)
+        }
+
+        function beforePage(){
+            currentPage -= 1;
+            if(currentPage == 0){
+                currentPage = 1;
+            }
+            displayTable(currentPage)
+        }
+
+        function displayTable(page) {
+            const startIndex = (page - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const slicedData = listUser.slice(startIndex, endIndex);
+
+
+            var myHTML = '';
+
+            myHTML += '<tr>';
+            myHTML += '<th style="width : 60px;padding : 10px 0px 10px 0px;" > </th>';
+            myHTML += '<th class="headerTabelStyle" style = "width : 15%;">ชื่อผู้ใช้ระบบ</th>';
+            myHTML += '<th class="headerTabelStyle" style = "width : 15%;">ชื่อพนักงาน</th>';
+            myHTML += '<th class="headerTabelStyle" style = "width : 15%;">นามสกุลพนักงาน</th>';
+            myHTML += '<th class="headerTabelStyle" style = "width : 50%;">อีเมล</th>';
+            myHTML += '</tr>';
+
+            for (let i = 0; i < slicedData.length; i++) {
+                myHTML += '<tr>';
+                myHTML += '<td class="text-center">';
+                myHTML += '<i class="fa fa-pencil" onclick="openPopup(false,' + slicedData[i].id + ')" style="color : blue;"></i>';
+                myHTML += '<i class="fa fa-trash-o" onclick="showPopupDelete(' + slicedData[i].id + ')" style="color : red;margin-left : 5px;"></i>';
+                myHTML += '</td>';
+                myHTML += '<td style="padding : 10px 5px 10px 5px;">' + slicedData[i].userName + '</td>';
+                myHTML += '<td style="padding : 10px 5px 10px 5px;">' + slicedData[i].name_TH + '</td>';
+                myHTML += '<td style="padding : 10px 5px 10px 5px;">' + slicedData[i].surname_TH + '</td>';
+                myHTML += '<td style="padding : 10px 5px 10px 5px;">' + slicedData[i].email + '</td>';
+                myHTML += '</tr>';
+            }
+
+            $("#UserListTable").html('');
+            $("#UserListTable").append(myHTML).val;
+
+            updatePagination(page);
+        }
+
+        function updatePagination(currentPage) {
+            const pageCount = Math.ceil(listUser.length / rowsPerPage);
+
+            var myHTML = "";
+
+            if (pageCount == 1) {
+                myHTML += '<a onclick="beforePage()" disabled><i class="fa fa-angle-left" style="color: gray;"></i></a>';
+            } else {
+                myHTML += '<a onclick="beforePage()"><i class="fa fa-angle-left"></i></a>';
+            }
+
+            for (let i = 1; i <= pageCount; i++) {
+                
+                if (pageCount == 1) {
+                    myHTML += '<a style="background-color : white;" disabled>' + i + '</a>'
+                }
+                else if (i == currentPage) {
+                    myHTML += '<a onclick="displayTable(' + i + ')" style="background-color : gray;">' + i + '</a>'
+                } else {
+                    myHTML += '<a onclick="displayTable(' + i + ')" style="background-color : white;">' + i + '</a>'
+                }
+            }
+
+            if (pageCount == 1 || pageCount == currentPage) {
+                myHTML += '<a onclick="nextPage()" disabled><i class="fa fa-angle-right"  style="color: gray;"></i></a>';
+            }else{
+                myHTML += '<a onclick="nextPage()"><i class="fa fa-angle-right"></i></a>';
+            }
+
+            $("#paginationTable").html('');
+            $("#paginationTable").append(myHTML).val;
+
+            $('#paginationDetail').html('');
+            $("#paginationDetail").append(
+                '<label id="paginationDetail">Page ' + currentPage + ' of ' + pageCount + ' (' + listUser.length + ' items)</label>'
+            ).val;
+        }
+
+        function showPopupDelete(id) {
+            index = id;
+            $("#BackGroundPopupUserManagement").show();
+            $('#popupIsDelete').show();
+        }
+
+        function closePopupDelete(){
+            index = 0;
+            $("#BackGroundPopupUserManagement").hide();
+            $('#popupIsDelete').hide();
+        }
+
+
+        const form = document.getElementById('PopupUserManagement');
+        const NameUserForm = document.getElementById('NameUserForm');
+        const EmployeeNameTHForm = document.getElementById('EmployeeNameTHForm');
+        const EmployeeNameENForm = document.getElementById('EmployeeNameENForm');
+        const UserGroupForm = document.getElementById('UserGroupForm');
+        const DateFromForm = document.getElementById('DateFromForm');
+        const DateToForm = document.getElementById('DateToForm');
+        
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (NameUserForm.value === '') {
+                showError(username, 'กรุณากรอก Username');
+            } else {
+                showSuccess(username);
+            }
+        });
+
+        function showError(input, message) {
+            const formControl = input.parentElement;
+            formControl.className = 'form-control error';
+            const small = formControl.querySelector('small');
+            small.innerText = message;
+        }
+
+        function showSuccess(input) {
+            const formControl = input.parentElement;
+            formControl.className = 'form-control success';
+        }
+    </script>
+</head>
+<body style="background-color : #F3F3F9;">
+    <div id="BackGroundPopupUserManagement" 
+        style="position: absolute;backdrop-filter: blur(1px); -webkit-filter: blur(1px);-moz-filter: blur(1px);
+        -o-filter: blur(1px);-ms-filter: blur(1px);filter: blur(1px);width : 100%;height : 100%;display:none">
+    </div>
+    <form id="PopupUserManagement" style="position: absolute;left: 0;right: 0;top : 0;bottom : 0; margin : auto; width : 800px ; 
+            height : 660px;border-radius : 5px;border: 1px solid gray;display:none;" onsubmit="return false;">
+        <div id="titlepopup" style="display: flex;flex-direction:row; background-color : #CEE3F4;padding : 10px;height : 50px;">
+            <div id="popupTile">เพิ่มข้อมูลผู้ใช้งาน - ผู้ใช้งาน</div>
+            <button onclick="closePopup()" style="margin-left : auto;border:none;background : none"><i class="fa fa-close"></i></button>
+        </div>
+        <div style="background-color : #F3F3F9;padding : 10px;height: calc(100% - 50px - 50px)">
+            <div class="magenagementContrainer">
+                <label>ชื่อผู้ใช้ระบบ <span style="color: red;margin-bottom : 4px;">*</span></label>
+                <input class="form-control" type="text" id="NameUserForm" style="width : 30%;">
+            </div>
+            <div class="magenagementContrainer">
+                <label>อีเมล <span style="color: red;margin-bottom : 4px;">*</span></label>
+                <input class="form-control" type="text" id="EmailForm" style="">
+            </div>
+            <div class="magenagementContrainer">
+                <label>ชื่อนามสกุล <span style="color: red;margin-bottom : 4px;">*</span> (TH)</label>
+                <input class="form-control" type="text" id="EmployeeNameTHForm" style="">
+            </div>
+            <div class="magenagementContrainer">
+                <label>ชื่อนามสกุล <span style="color: red;margin-bottom : 4px;">*</span> (EN)</label>
+                <input class="form-control" type="text" id="EmployeeNameENForm" style="">
+            </div>
+            <div id="passwordDetail" style="margin-bottom: 10px;display:none;">
+                <div style="display: flex;flex-direction: row;margin-bottom: 10px;">
+                    <label style="width : 20%">รหัสผ่าน</label>
+                    <div style="display: flex;flex-direction: row;width: 80%">
+                        <input class="form-control" style="width : 100%;height : 40px;" type="password" id="PasswordForm" maxlength="13">
+                        <button onclick="passwordToggle()" style="background-color: #337AB7"><i class="fa fa-eye" id="eyeButton" style="color : white;width : 20px;"></i></button>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:row;">
+                    <div style="width : 20%"></div>
+                    <div class="solutionPassword" style="width : 80%;">
+                        <label>1.ความยาวรหัสผ่านต่ำสุด: 8</label>
+                        <label>2.ความยาวรหัสผ่านสูงสุด: 13</label>
+                        <label>3.จำนวนตัวอักษร: 1</label>
+                        <label>4.จำนวนตัวอักษรพิมพ์ใหญ่: 1</label>
+                        <label>5.จำนวนตัวเลข: 1</label>
+                        <label>6.จำนวนอักขระพิเศษ: 0</label>
+                        <label>7.อักษรพิเศษที่ใช้ได้: !#@@$%^&*_+-=.</label>
+                    </div>
+                </div>
+            </div>
+            <div class="magenagementContrainer">
+                <label>กลุ่มสิทธิ์ผู้ใช้ระบบ</label>
+                <select class="form-control"  id="UserGroupForm" style="height : 40px;">
+                </select>
+            </div>
+            <div class="magenagementDate">
+                <div>
+                    <label>วัน/เวลาที่ใช้งานระบบได้</label>
+                    <input class="form-control" type="date" id="DateFromForm">
+                </div>
+                <div style="margin-left : 2px;">
+                    <label>วัน/เวลาที่สิ้นสุดใช้งานระบบได้</label>
+                    <input class="form-control" type="date" id="DateToForm">
+                </div>
+            </div>
+        </div>
+        <div style="display: flex;flex-direction:row;background-color : #D3D6E5;padding : 10px; height : 50px">
+            <div style="margin-left : auto ; display : flex; flex-direction : row;">
+                <button type="submit" id="buttonAddUser" onclick="addUser()" style="margin-right : 5px;background-color : #5CB85C;border : none;color : white;border-radius : 5px;width : 120px;"><i class="fa fa-save" style="color : white;"></i> บันทึก</button>
+                <button id="buttonEditUser" onclick="updateUser()" style="margin-right : 5px;background-color : #5CB85C;border : none;color : white;border-radius :  5px;width : 120px;"><i class="fa fa-save" style="color : white;"></i> บันทึก</button>
+                <button onclick="closePopup()" style="margin-right : 5px;background-color : #D3D6E5;border-color :#337AB7;color : #337AB7;border-radius :  5px;width : 120px;"><i class="fa fa-close" style="color : #337AB7;"></i> ปิด</button>
+            </div>
+        </div>
+    </form>
+    
+    <div id="popupIsDelete" class="poupIsDelete" style="display: none;">
+        <div style="font-size:24px;font-weight : bold;">
+            <i class="fa fa-question-circle" style="color: #F7B84B;"></i> ลบข้อมูล !!!!
+        </div>
+        <label style="margin-top : 20px;">คุณต้องการลบข้อมูลนี้ ?</label>
+        <hr />
+        <div style="height : 50px;margin-top : 20px;display:flex;flex-direction: row;">
+            <div style="margin-left : auto;">
+                <button style="background-color : #F7B84B;color : white;border : none; border-radius : 5px;" onclick="delectUser()">
+                    ใช้
+                </button>
+                <button style="background-color : #405189;color : white;border : none; border-radius : 5px;" onclick="closePopupDelete()">
+                    ไม่ใช้
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="SearchOption" style="background-color : #FFFFFF; margin : 10px;padding : 20px;border-radius : 5px;">
+        <div style="display:flex;flex-direction:row;">
+            <label style="font-size : 20px">กรองข้อมูล</label>
+            <div style ="display:flex;flex-direction:row;margin-left : auto;">
+                <button onclick="searchUser()" style="border: none;border-radius : 5px;margin-right : 5px;border : none; background-color : #337AB7;color : white;padding : 0px 20px 0px 20px;height: 40px;"><i class="fa fa-search" style="color : white;"></i> ค้นหา</button>
+                <button style="background-color : white;border-radius : 5px;height: 40px;width : 40px;" onclick="clearSearchOption()">
+                    <i class="fa fa-refresh" style="color:black;font-size : 25px;"></i>
+                </button>
+            </div>
+        </div>
+        <div style="border: 1px solid gray;margin : 10px 0px 10px 0px;"></div>
+        <div style="display : flex;flex-direction : row;">
+            <div style="display : flex;flex-direction : column;">
+                <label>ชื่อผู้ใช้ระบบ</label>
+                <input class="form-control" type="text" name="NameUser" id="NameUser" style="height: 40px;">
+            </div>
+            <div style="display : flex;flex-direction : column;margin-left : 20px;">
+                <label>อีเมล</label>
+                <input class="form-control" type="text" name="Email" id="Email" style="height: 40px;">
+            </div>
+        </div>
+        <div style="display : flex;flex-direction : row;">
+            <div style="display : flex;flex-direction : column;">
+                <label>ชื่อพนักงาน</label>
+                <input class="form-control" type="text" name="NameEmployee" id="NameEmployee" style="height: 40px;">
+            </div>
+            <div style="display : flex;flex-direction : column;margin-left : 20px;">
+                <label>นามสกุลพนักงาน</label>
+                <input class="form-control" type="text" name="SurNameEmployee" id="SurNameEmployee" style="height: 40px;">
+            </div>
+        </div>
+    </div>
+
+    <div id="SearchOption" style="background-color : #FFFFFF;margin : 10px;padding : 20px;border-radius : 5px;">
+        <div style="display : flex;flex-direction:row">
+            <button id="AddUserButton" style="background-color : #5CB85C;color : white;border: none;border-radius : 5px;width : 120px;height: 40px;" onclick="openPopup(true,0)">
+                <i class="fa fa-plus"></i> เพิ่มข้อมูล
+            </button>
+            <button style="background-color : white;border-radius : 5px; margin-left : auto;height: 40px;width : 40px;" onclick="searchUser()">
+                <i class="fa fa-refresh" style="color:black;font-size : 25px;"></i>
+            </button>
+        </div>
+
+        <table id="UserListTable" style="width : 100%;margin-top : 10px;" >
+            <tr>
+                <th style="width : 60px;padding : 10px 0px 10px 0px;"> </th>
+                <th class="headerTabelStyle" style="width : 15%;">ชื่อผู้ใช้ระบบ</th>
+                <th class="headerTabelStyle" style="width : 15%;">ชื่อพนักงาน</th>
+                <th class="headerTabelStyle" style="width : 15%;">นามสกุลพนักงาน</th>
+                <th class="headerTabelStyle" style="width : 50%;">อีเมล</th>
+            </tr>
+        </table>
+        <div id="tablePaging" style="display:flex;flex-direction : row;margin-top : 10px">
+            <div class="pagination">
+                <a id="rowPerPage5" style="background-color : gray;" onclick="setRowPerPage(5)">5</a>
+                <a id="rowPerPage10" style="background-color : white;" onclick="setRowPerPage(10)">10</a>
+                <a id="rowPerPage15" style="background-color : white;" onclick="setRowPerPage(15)">15</a>
+                <a id="rowPerPage20" style="background-color : white;" onclick="setRowPerPage(20)">20</a>
+                <a id="rowPerPage30" style="background-color : white;" onclick="setRowPerPage(30)">30</a>
+                <a id="rowPerPage50" style="background-color : white;" onclick="setRowPerPage(50)">50</a>
+                <a id="rowPerPage100" style="background-color : white;" onclick="setRowPerPage(100)">100</a>
+                <a id="rowPerPage150" style="background-color : white;" onclick="setRowPerPage(150)">150</a>
+                <a id="rowPerPage200" style="background-color : white;" onclick="setRowPerPage(200)">200</a>
+            </div>
+            <div style="display:flex;flex-direction : row;margin-left:auto;">
+                <div id="paginationDetail" style="margin-top : 10px;">
+                    <label id="paginationDetail">Page 0 of 0 (0 items)</label>
+                </div>
+                <div id="paginationTable" class="pagination">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
